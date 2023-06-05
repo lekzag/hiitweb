@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import "bootstrap/dist/css/bootstrap.css";
+
 
 const exerciseList = ["burpees", "push up", "squat", "crunch", "jumping jack", "russian twist", "mountain climber", "plank", "lunges", "high knees", "jump rope", "diamond push ups", "sit ups", "pull ups", "L-sit", "wall sit", "calf raises", "side plank", "superman", "hamstring curl", "wide push ups", "flutterkicks", "pistol squats", "hip thrust", "one leg lunge", "bulagarian squat", "jump lunges", "bear walk", "step up", "crab walk", "archer push ups"];
 
@@ -97,11 +99,11 @@ const App = () => {
     }
   }, [partCountdown, isBreakTime, userBreakTime, userRounds, currentRound, userExerciseTime]);
 
-useEffect(() => {
-  if (!isWorkoutStarted) {
-    setCurrentRound(1);
-  }
-}, [isWorkoutStarted]);
+  useEffect(() => {
+    if (!isWorkoutStarted) {
+      setCurrentRound(1);
+    }
+  }, [isWorkoutStarted]);
 
   // end of workout
   useEffect(() => {
@@ -132,79 +134,101 @@ useEffect(() => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">HIIT app</h1>
-      <div className="space-y-4">
-        <div className="flex flex-col">
-          <label className="text-lg font-semibold">Number of Rounds:</label>
+    <div className="container">
+      <h1 className="mt-5">HIIT App</h1>
+
+      <div className="row mt-4">
+        <div className="col-md-4">
+          <label>Number of Rounds:</label>
           <input
             type="number"
             value={userRounds}
             onChange={(e) => setUserRounds(e.target.value)}
             disabled={isWorkoutStarted}
-            className="px-4 py-2 border rounded-lg"
+            className="form-control"
           />
         </div>
-        <div>Number of Rounds: {userRounds}</div>
-        <div className="flex flex-col">
+
+        <div className="col-md-4">
           <label className="text-lg font-semibold">Break Time:</label>
           <input
             type="number"
             value={userBreakTime}
             onChange={(e) => setUserBreakTime(e.target.value)}
             disabled={isWorkoutStarted}
-            className="px-4 py-2 border rounded-lg"
+            className="form-control"
           />
         </div>
-        <div>Break Time: {breakTime} seconds</div>
-        <div className="flex flex-col">
+
+        <div className="col-md-4">
           <label className="text-lg font-semibold">Exercise Time:</label>
           <input
             type="number"
             value={userExerciseTime}
             onChange={(e) => setUserExerciseTime(e.target.value)}
             disabled={isWorkoutStarted}
-            className="px-4 py-2 border rounded-lg"
+            className="form-control"
           />
         </div>
-        <div>Exercise Time: {exerciseTime} seconds</div>
-        <div>Current time fraction countdown: {partCountdown}</div>
-        <div>Part type: {isBreakTime ? "Break Time" : "Exercise Time"}</div>
-        <div>Total Time: {totalTime} seconds</div>
-        <div>Total Countdown: {totalCountdown} seconds</div>
-        <div>Advancement: {advancement}%</div>
-        <div>Current Round: {currentRound}</div>
-        <div>Current Exercise: {currentExercise}</div>
-  
-        {!isWorkoutFinished && !isRunning && (
+      </div>
+
+      <div className="row mt-4">
+        <div className="col-md-6">
+          <div>Number of Rounds: {userRounds}</div>
+          <div>Break Time: {userBreakTime} seconds</div>
+          <div>Exercise Time: {userExerciseTime} seconds</div>
+          <div>Total Time: {totalTime} seconds</div>
+        </div>
+
+        <div className="col-md-6">
+          <div>{totalCountdown}</div>
+
+          {!isWorkoutFinished && !isWorkoutStarted && (
+            <button
+              onClick={handleStart}
+              disabled={isWorkoutFinished}
+              className="btn btn-primary"
+            >
+              Start
+            </button>
+          )}
+          {!isWorkoutFinished && isWorkoutStarted && (
+            <button
+              onClick={pauseTimer}
+              className="btn btn-primary"
+            >
+              Pause
+            </button>
+          )}
           <button
-            onClick={handleStart}
-            disabled={isWorkoutFinished}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+            onClick={handleReset}
+            className="btn btn-danger"
           >
-            Start
+            Reset
           </button>
-        )}
-        {!isWorkoutFinished && isRunning && (
-          <button
-            onClick={pauseTimer}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg"
-          >
-            Pause
-          </button>
-        )}
-        <button
-          onClick={handleReset}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg"
-        >
-          Reset
-        </button>
-        <div>isWorkoutStarted: {isWorkoutStarted ? "true" : "false"}</div>
-        isWorkoutFinished: {isWorkoutFinished ? "true" : "false"}
-        <div>{isWorkoutFinished ? "Well Done, workout is finished" : null}</div>
+        </div>
+      </div>
+
+      <div className="row mt-4">
+        <div className="col-md-6">
+          <div>Current time fraction countdown: {partCountdown}</div>
+          <div>Part type: {isBreakTime ? "Break Time" : "Exercise Time"}</div>
+          <div>Total Countdown: {totalCountdown} seconds</div>
+          <div>Advancement: {advancement}%</div>
+          <div>Current Round: {currentRound}</div>
+          <div>Current Exercise: {currentExercise}</div>
+        </div>
+
+        <div className="col-md-6">
+          {isWorkoutFinished && (
+            <div className="alert alert-success">
+              Well done, the workout is finished!
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
-        }
+};
 
 export default App;
