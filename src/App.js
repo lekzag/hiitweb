@@ -32,7 +32,7 @@ const App = () => {
   }, [userRounds, userBreakTime, userExerciseTime]);
 
   const pauseTimer = () => {
-    setIsRunning(false);
+    setIsRunning(!isRunning);
   }
 
   const handleStart = () => {
@@ -93,7 +93,7 @@ const App = () => {
         setIsBreakTime(true);
         setPartCountdown(userExerciseTime);
         if (currentRound < userRounds) {
-        setCurrentRound((prevRound) => prevRound + 1);
+          setCurrentRound((prevRound) => prevRound + 1);
         }
       }
     }
@@ -181,7 +181,34 @@ const App = () => {
         </div>
 
         <div className="col-md-6">
-          <div>{totalCountdown}</div>
+          <div className="text-center">
+            <h2>{partCountdown}</h2>
+            <p>{totalCountdown} seconds ({advancement}%) </p>
+          </div>
+
+          <div className="text-center bg-secondary">
+            {isBreakTime ? (
+              <h3 className="text-center">Rest</h3>
+            ) : (
+              <h3 className="text-center text-danger">Workout</h3>
+            )}
+          </div>
+
+
+          <div className="text-center">
+            <h3>Round {currentRound}</h3>
+            <h4> out of {rounds} rounds</h4>
+            {isBreakTime && <h2 className="bg-warning">Next exercice <div>{currentExercise}</div> </h2>}
+            {!isBreakTime && (
+              <h2 className="alert text-white bg-dark">
+                {currentExercise.toUpperCase()}
+              </h2>
+            )}
+
+
+          </div>
+
+
 
           {!isWorkoutFinished && !isWorkoutStarted && (
             <button
@@ -193,17 +220,11 @@ const App = () => {
             </button>
           )}
           {!isWorkoutFinished && isWorkoutStarted && (
-            <button
-              onClick={pauseTimer}
-              className="btn btn-primary"
-            >
-              Pause
+            <button onClick={pauseTimer} className="btn btn-primary">
+              {isRunning ? "Pause" : "resume"}
             </button>
           )}
-          <button
-            onClick={handleReset}
-            className="btn btn-danger"
-          >
+          <button onClick={handleReset} className="btn btn-danger">
             Reset
           </button>
         </div>
@@ -211,7 +232,7 @@ const App = () => {
 
       <div className="row mt-4">
         <div className="col-md-6">
-          <div>Current time fraction countdown: {partCountdown}</div>
+          <div>Current countdown: {partCountdown}</div>
           <div>Part type: {isBreakTime ? "Break Time" : "Exercise Time"}</div>
           <div>Total Countdown: {totalCountdown} seconds</div>
           <div>Advancement: {advancement}%</div>
@@ -229,6 +250,7 @@ const App = () => {
       </div>
     </div>
   );
+
 };
 
 export default App;
