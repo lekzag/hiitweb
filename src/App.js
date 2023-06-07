@@ -27,7 +27,7 @@ const App = () => {
   const beepSoundRef = useRef();
 
 
-  
+
 
   // Updates countdown when parameters of the workout change
   useEffect(() => {
@@ -69,30 +69,30 @@ const App = () => {
     }
   }, [isBreakTime, userBreakTime, userExerciseTime]);
 
- // Changes when first starting the workout
-useEffect(() => {
-  let timer;
+  // Changes when first starting the workout
+  useEffect(() => {
+    let timer;
 
-  if (isRunning) {
-    setIsWorkoutStarted(true);
-    timer = setTimeout(() => {
-      setPartCountdown((prevCountdown) => {
-        // Play the sound in the last 3 seconds
-        if (prevCountdown <= 3 && prevCountdown > 0) {
-          beepSoundRef.current.play();
-        }
-        return prevCountdown - 1;
-      });
-      setTotalCountdown((prevCountdown) => prevCountdown - 1);
-      setAdvancement(Math.floor(((totalTime - (totalCountdown - 1)) / totalTime) * 100));
-    }, 1000);
-    return () => clearTimeout(timer);
-  } else if (!isRunning && totalCountdown === totalTime) {
-    setIsWorkoutFinished(false);
-  }
-}, [isRunning, totalCountdown, totalTime]);
+    if (isRunning) {
+      setIsWorkoutStarted(true);
+      timer = setTimeout(() => {
+        setPartCountdown((prevCountdown) => {
+          // Play the sound in the last 3 seconds
+          if (prevCountdown <= 3 && prevCountdown > 0) {
+            beepSoundRef.current.play();
+          }
+          return prevCountdown - 1;
+        });
+        setTotalCountdown((prevCountdown) => prevCountdown - 1);
+        setAdvancement(Math.floor(((totalTime - (totalCountdown - 1)) / totalTime) * 100));
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (!isRunning && totalCountdown === totalTime) {
+      setIsWorkoutFinished(false);
+    }
+  }, [isRunning, totalCountdown, totalTime]);
 
-  
+
 
 
   // Updates when partCountdown reaches 0
@@ -148,115 +148,106 @@ useEffect(() => {
   };
 
   return (
+    <div className="container mt-5">
 
-
-    <div className="container">
       <audio preload="auto" id="beepSound" ref={beepSoundRef} onPlay={() => console.log("Le son est joué !")} >
         <source src="./sound/beep.wav" type="audio/wav" />
       </audio>
 
-      <h1 className="mt-5">HIIT App</h1>
-
-      <div className="row mt-4">
-        <div className="col-md-4">
-          <label>Number of Rounds:</label>
-          <input
-            type="number"
-            value={userRounds}
-            onChange={(e) => setUserRounds(e.target.value)}
-            disabled={isWorkoutStarted}
-            className="form-control"
-          />
-        </div>
-
-        <div className="col-md-4">
-          <label className="text-lg font-semibold">Break Time:</label>
-          <input
-            type="number"
-            value={userBreakTime}
-            onChange={(e) => setUserBreakTime(e.target.value)}
-            disabled={isWorkoutStarted}
-            className="form-control"
-          />
-        </div>
-
-        <div className="col-md-4">
-          <label className="text-lg font-semibold">Exercise Time:</label>
-          <input
-            type="number"
-            value={userExerciseTime}
-            onChange={(e) => setUserExerciseTime(e.target.value)}
-            disabled={isWorkoutStarted}
-            className="form-control"
-          />
+      <div className="row mb-4">
+        <div className="col text-center bg-dark text-light">
+          <h1 className="display-3">HIIT App</h1>
         </div>
       </div>
 
-      <div className="row mt-4 text-center">
-
-        <div className="col-md-6">
-          <div className="text-center">
-            <h2>{partCountdown}</h2>
-            <p>{totalCountdown} seconds ({advancement}%) </p>
+      <div className="row mb-4">
+        <div className="col-md-4">
+          <div className="input-group">
+            <span className="input-group-text">Number of Rounds</span>
+            <input
+              type="number"
+              value={userRounds}
+              onChange={(e) => setUserRounds(e.target.value)}
+              disabled={isWorkoutStarted}
+              className="form-control"
+            />
           </div>
+        </div>
 
-          <div className="text-center bg-secondary">
-            {isBreakTime ? (
-              <h3 className="text-center">Rest</h3>
-            ) : (
-              <h3 className="text-center text-danger">Workout</h3>
-            )}
+        <div className="col-md-4">
+          <div className="input-group">
+            <span className="input-group-text">Break Time</span>
+            <input
+              type="number"
+              value={userBreakTime}
+              onChange={(e) => setUserBreakTime(e.target.value)}
+              disabled={isWorkoutStarted}
+              className="form-control"
+            />
           </div>
+        </div>
 
-
-          <div className="text-center">
-            <h3>Round {currentRound}</h3>
-            <h4> out of {userRounds} rounds</h4>
-            {isBreakTime && <h2 className="bg-warning">Next exercice <div>{currentExercise}</div> </h2>}
-            {!isBreakTime && (
-              <h2 className="alert text-white bg-dark">
-                {currentExercise.toUpperCase()}
-              </h2>
-            )}
-
-
+        <div className="col-md-4">
+          <div className="input-group">
+            <span className="input-group-text">Exercise Time</span>
+            <input
+              type="number"
+              value={userExerciseTime}
+              onChange={(e) => setUserExerciseTime(e.target.value)}
+              disabled={isWorkoutStarted}
+              className="form-control"
+            />
           </div>
-
-
-
-          {!isWorkoutFinished && !isWorkoutStarted && (
-            <button
-              onClick={handleStart}
-              disabled={isWorkoutFinished}
-              className="btn btn-primary"
-            >
-              Start
-            </button>
-          )}
-          {!isWorkoutFinished && isWorkoutStarted && (
-            <button onClick={pauseTimer} className="btn btn-primary">
-              {isRunning ? "Pause" : "resume"}
-            </button>
-          )}
-          <button onClick={handleReset} className="btn btn-danger">
-            Reset
-          </button>
         </div>
       </div>
 
-      <div className="row mt-4">
+      <div className="row mb-4">
 
-        <div className="col-md-6">
-          {isWorkoutFinished && (
-            <div className="alert alert-success">
-              Well done, the workout is finished!
+        <div className="col-md-6 mx-auto">
+          <div className="card text-center bg-light">
+            <div className="card-body">
+              <h2 className="card-title">{partCountdown}</h2>
+              <p className="card-text">{totalCountdown} seconds ({advancement}%) </p>
+
+              <h3 className={isBreakTime ? "text-center text-success" : "text-center text-danger"}>{isBreakTime ? "Rest" : "Workout"}</h3>
+
+              <h4>Round {currentRound} out of {userRounds} rounds</h4>
+              {isBreakTime && <h5 className="card-subtitle mb-2 text-muted">Next exercise: {currentExercise}</h5>}
+              {!isBreakTime && (
+                <h5 className="card-subtitle mb-2 text-warning">
+                  {currentExercise.toUpperCase()}
+                </h5>
+              )}
+
+              {!isWorkoutFinished && !isWorkoutStarted && (
+                <button
+                  onClick={handleStart}
+                  disabled={isWorkoutFinished}
+                  className="btn btn-primary btn-lg btn-block mt-3"
+                >
+                  Start
+                </button>
+              )}
+              {!isWorkoutFinished && isWorkoutStarted && (
+                <button onClick={pauseTimer} className="btn btn-warning btn-lg btn-block mt-3">
+                  {isRunning ? "Pause" : "Resume"}
+                </button>
+              )}
+              <button onClick={handleReset} className="btn btn-danger btn-lg btn-block mt-3">
+                Reset
+              </button>
+
+              {isWorkoutFinished && (
+                <div className="alert alert-success mt-3">
+                  Well done, the workout is finished!
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
   );
-
-};
+}
 
 export default App;
