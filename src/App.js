@@ -49,7 +49,7 @@ const App = () => {
   // generate a random exercise
   const generateExercise = () => {
     const randomIndex = Math.floor(Math.random() * exerciseList.length);
-    setCurrentExercise(exerciseList[randomIndex]);
+    setCurrentExercise(exerciseList[randomIndex].name);
   };
 
   useEffect(() => {
