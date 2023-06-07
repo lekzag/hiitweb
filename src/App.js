@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.css";
-
-
-const exerciseList = ["burpees", "push up", "squat", "crunch", "jumping jack", "russian twist", "mountain climber", "plank", "lunges", "high knees", "jump rope", "diamond push ups", "sit ups", "pull ups", "L-sit", "wall sit", "calf raises", "side plank", "superman", "hamstring curl", "wide push ups", "flutterkicks", "pistol squats", "hip thrust", "one leg lunge", "bulagarian squat", "jump lunges", "bear walk", "step up", "crab walk", "archer push ups"];
+import exerciseList from './exerciseList';
 
 const App = () => {
   const [rounds, setRounds] = useState(3);
