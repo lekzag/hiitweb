@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createRef, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.css";
 
 
@@ -24,9 +24,10 @@ const App = () => {
   const [userBreakTime, setUserBreakTime] = useState(5);
   const [userExerciseTime, setUserExerciseTime] = useState(10);
 
-  const beepSoundRef = useRef(null);
-  const audioRef = useRef(null);
+  const beepSoundRef = useRef();
 
+
+  
 
   // Updates countdown when parameters of the workout change
   useEffect(() => {
@@ -68,26 +69,30 @@ const App = () => {
     }
   }, [isBreakTime, userBreakTime, userExerciseTime]);
 
-  // Changes when first starting the workout
-  useEffect(() => {
-    let timer;
+ // Changes when first starting the workout
+useEffect(() => {
+  let timer;
 
-    if (isRunning) {
-      setIsWorkoutStarted(true);
-      timer = setTimeout(() => {
-        setPartCountdown((prevCountdown) => prevCountdown - 1);
-        setTotalCountdown((prevCountdown) => prevCountdown - 1);
-        setAdvancement(Math.floor(((totalTime - (totalCountdown - 1)) / totalTime) * 100));
-
-        if (partCountdown <= 3 && !beepSoundRef.current.paused) {
+  if (isRunning) {
+    setIsWorkoutStarted(true);
+    timer = setTimeout(() => {
+      setPartCountdown((prevCountdown) => {
+        // Play the sound in the last 3 seconds
+        if (prevCountdown <= 3 && prevCountdown > 0) {
           beepSoundRef.current.play();
         }
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (!isRunning && totalCountdown === totalTime) {
-      setIsWorkoutFinished(false);
-    }
-  }, [isRunning, totalCountdown, totalTime, partCountdown]);
+        return prevCountdown - 1;
+      });
+      setTotalCountdown((prevCountdown) => prevCountdown - 1);
+      setAdvancement(Math.floor(((totalTime - (totalCountdown - 1)) / totalTime) * 100));
+    }, 1000);
+    return () => clearTimeout(timer);
+  } else if (!isRunning && totalCountdown === totalTime) {
+    setIsWorkoutFinished(false);
+  }
+}, [isRunning, totalCountdown, totalTime]);
+
+  
 
 
   // Updates when partCountdown reaches 0
