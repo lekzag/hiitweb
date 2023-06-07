@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, createRef, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.css";
 
 
@@ -23,6 +23,10 @@ const App = () => {
   const [userRounds, setUserRounds] = useState(2);
   const [userBreakTime, setUserBreakTime] = useState(5);
   const [userExerciseTime, setUserExerciseTime] = useState(10);
+
+  const beepSoundRef = useRef(null);
+  const audioRef = useRef(null);
+
 
   // Updates countdown when parameters of the workout change
   useEffect(() => {
@@ -74,12 +78,17 @@ const App = () => {
         setPartCountdown((prevCountdown) => prevCountdown - 1);
         setTotalCountdown((prevCountdown) => prevCountdown - 1);
         setAdvancement(Math.floor(((totalTime - (totalCountdown - 1)) / totalTime) * 100));
+
+        if (partCountdown <= 3 && !beepSoundRef.current.paused) {
+          beepSoundRef.current.play();
+        }
       }, 1000);
       return () => clearTimeout(timer);
     } else if (!isRunning && totalCountdown === totalTime) {
       setIsWorkoutFinished(false);
     }
-  }, [isRunning, totalCountdown, totalTime]);
+  }, [isRunning, totalCountdown, totalTime, partCountdown]);
+
 
   // Updates when partCountdown reaches 0
   useEffect(() => {
@@ -134,7 +143,13 @@ const App = () => {
   };
 
   return (
+
+
     <div className="container">
+      <audio preload="auto" id="beepSound" ref={beepSoundRef} onPlay={() => console.log("Le son est joué !")} >
+        <source src="./sound/beep.wav" type="audio/wav" />
+      </audio>
+
       <h1 className="mt-5">HIIT App</h1>
 
       <div className="row mt-4">
@@ -172,13 +187,7 @@ const App = () => {
         </div>
       </div>
 
-      <div className="row mt-4">
-        <div className="col-md-6">
-          <div>Number of Rounds: {userRounds}</div>
-          <div>Break Time: {userBreakTime} seconds</div>
-          <div>Exercise Time: {userExerciseTime} seconds</div>
-          <div>Total Time: {totalTime} seconds</div>
-        </div>
+      <div className="row mt-4 text-center">
 
         <div className="col-md-6">
           <div className="text-center">
@@ -197,7 +206,7 @@ const App = () => {
 
           <div className="text-center">
             <h3>Round {currentRound}</h3>
-            <h4> out of {rounds} rounds</h4>
+            <h4> out of {userRounds} rounds</h4>
             {isBreakTime && <h2 className="bg-warning">Next exercice <div>{currentExercise}</div> </h2>}
             {!isBreakTime && (
               <h2 className="alert text-white bg-dark">
@@ -231,14 +240,6 @@ const App = () => {
       </div>
 
       <div className="row mt-4">
-        <div className="col-md-6">
-          <div>Current countdown: {partCountdown}</div>
-          <div>Part type: {isBreakTime ? "Break Time" : "Exercise Time"}</div>
-          <div>Total Countdown: {totalCountdown} seconds</div>
-          <div>Advancement: {advancement}%</div>
-          <div>Current Round: {currentRound}</div>
-          <div>Current Exercise: {currentExercise}</div>
-        </div>
 
         <div className="col-md-6">
           {isWorkoutFinished && (
