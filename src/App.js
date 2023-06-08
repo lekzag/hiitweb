@@ -18,9 +18,9 @@ const App = () => {
   const [isWorkoutFinished, setIsWorkoutFinished] = useState(false); // [true, false
 
   // User-defined values
-  const [userRounds, setUserRounds] = useState(2);
-  const [userBreakTime, setUserBreakTime] = useState(5);
-  const [userExerciseTime, setUserExerciseTime] = useState(10);
+  const [userRounds, setUserRounds] = useState(10);
+  const [userBreakTime, setUserBreakTime] = useState(10);
+  const [userExerciseTime, setUserExerciseTime] = useState(30);
 
   const beepSoundRef = useRef();
 
@@ -62,6 +62,7 @@ const App = () => {
       handleReset();
     } else {
       setIsRunning(true)
+      setIsSelectionLocked(true);
     }
   };
 
@@ -380,7 +381,9 @@ const App = () => {
           <div className="card text-center bg-light">
             <div className="card-body">
               <h2 className="card-title">{partCountdown}</h2>
-              <p className="card-text">{totalCountdown} seconds ({advancement}%) </p>
+              <p>
+              Remaining time: {Math.floor(totalCountdown / 60)}:{totalCountdown % 60} ({advancement}%)
+              </p>
               <div className="progress mt-3">
                 <div className="progress-bar" role="progressbar" style={{ width: `${advancement}%` }}></div>
               </div>
