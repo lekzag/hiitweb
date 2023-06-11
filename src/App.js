@@ -24,8 +24,6 @@ const App = () => {
 
   const beepSoundRef = useRef();
 
-  const [activeExercises, setActiveExercises] = useState([]);
-
   const [activeDifficulty, setActiveDifficulty] = useState({
     easy: true,
     medium: true,
@@ -37,8 +35,8 @@ const App = () => {
 
   const [activeBodyParts, setActiveBodyParts] = useState({
     legs: true,
-    upperBody: true,
-    fullBody: true,
+    "upper body": true,
+    "full body": true,
     abs: true,
     arms: true
   });
@@ -71,24 +69,25 @@ const App = () => {
     generateExercise();
   };
 
-  // generate a random exercise
-  const generateExercise = () => {
-    const filteredExercises = exerciseList.filter((exercise) => {
-      const isDifficultyActive = activeDifficulty[exercise.difficulty];
-      const isImpactActive = !exercise.dynamic || activeImpact;
-      const isBodyPartActive =
-        (activeBodyParts.legs && exercise.bodyPart.includes('legs')) ||
-        (activeBodyParts.upperBody && exercise.bodyPart.includes('upper body')) ||
-        (activeBodyParts.fullBody && exercise.bodyPart.includes('full body')) ||
-        (activeBodyParts.abs && exercise.bodyPart.includes('abs')) ||
-        (activeBodyParts.arms && exercise.bodyPart.includes('arms'));
+// generate a random exercise
+const generateExercise = () => {
+  const filteredExercises = exerciseList.filter((exercise) => {
+    const isDifficultyActive = activeDifficulty[exercise.difficulty];
+    const isImpactActive = !activeImpact || !exercise.dynamic;
+    const isBodyPartActive = exercise.bodyPart.some(part => activeBodyParts[part]);
 
-      return isDifficultyActive && isImpactActive && isBodyPartActive;
-    });
+    return isDifficultyActive && isImpactActive && isBodyPartActive;
+  });
 
+  if (filteredExercises.length > 0) {
     const randomIndex = Math.floor(Math.random() * filteredExercises.length);
     setCurrentExercise(filteredExercises[randomIndex].name);
-  };
+  } else {
+    console.log("No exercises found with the current filters");
+  }
+  console.log("Filtered exercises:", filteredExercises);
+};
+
 
 
 
@@ -308,7 +307,7 @@ const App = () => {
                   className="form-check-input"
                   type="checkbox"
                   checked={activeBodyParts.upperBody}
-                  onChange={() => setActiveBodyParts({ ...activeBodyParts, upperBody: !activeBodyParts.upperBody })}
+                  onChange={() => setActiveBodyParts({ ...activeBodyParts, "upper body": !activeBodyParts["upper body"] })}
                   disabled={isSelectionLocked}
                 />
                 <label className="form-check-label">Upper Body</label>
@@ -318,7 +317,7 @@ const App = () => {
                   className="form-check-input"
                   type="checkbox"
                   checked={activeBodyParts.fullBody}
-                  onChange={() => setActiveBodyParts({ ...activeBodyParts, fullBody: !activeBodyParts.fullBody })}
+                  onChange={() => setActiveBodyParts({ ...activeBodyParts, "full body": !activeBodyParts["full body"] })}
                   disabled={isSelectionLocked}
                 />
                 <label className="form-check-label">Full Body</label>
@@ -382,7 +381,7 @@ const App = () => {
             <div className="card-body">
               <h2 className="card-title">{partCountdown}</h2>
               <p>
-              Remaining time: {Math.floor(totalCountdown / 60)}:{totalCountdown % 60} ({advancement}%)
+              Remaining time : {Math.floor(totalCountdown / 60)}:{totalCountdown % 60} ({advancement}%)
               </p>
               <div className="progress mt-3">
                 <div className="progress-bar" role="progressbar" style={{ width: `${advancement}%` }}></div>

@@ -17,7 +17,7 @@ const exerciseList = [
     { name: "wall sit", difficulty: "medium", bodyPart: ["legs"], dynamic: false },
     { name: "calf raises", difficulty: "easy", bodyPart: ["legs"], dynamic: true },
     { name: "side plank", difficulty: "medium", bodyPart: ["abs", "side"], dynamic: false },
-    { name: "superman", difficulty: "medium", bodyPart: ["back"], dynamic: false },
+    { name: "superman", difficulty: "medium", bodyPart: ["back", "upper body"], dynamic: false },
     { name: "hamstring curl", difficulty: "medium", bodyPart: ["legs"], dynamic: false },
     { name: "wide push ups", difficulty: "medium", bodyPart: ["upper body", "arms"], dynamic: true },
     { name: "flutterkicks", difficulty: "medium", bodyPart: ["abs"], dynamic: false },
@@ -63,6 +63,8 @@ const exerciseList = [
     { name: "squat taps", difficulty: "medium", bodyPart: ["legs"], dynamic: true },
     { name: "crunch reach through", difficulty: "medium", bodyPart: ["abs"], dynamic: false },
     { name: "plank alternating leg raise", difficulty: "easy", bodyPart: ["abs"], dynamic: false },
+    { name: "boat hold", difficulty: "medium", bodyPart: ["abs"], dynamic: false },
+    { name: "side boat hold", difficulty: "medium", bodyPart: ["abs", "side"], dynamic: false },
   ];
   
 export default exerciseList;
