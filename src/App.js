@@ -32,6 +32,15 @@ const App = () => {
     extreme: false
   });
 
+  const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
+
+  const difficultyWeights = {
+    easy: { easy: 0.8, medium: 0.2, hard: 0.0, extreme: 0.0 },
+    medium: { easy: 0.2, medium: 0.7, hard: 0.1, extreme: 0.0 },
+    hard: { easy: 0.1, medium: 0.2, hard: 0.3, extreme: 0.0 },
+    extreme: { easy: 0.0, medium: 0.2, hard: 0.3, extreme: 0.5 },
+  };
+
   const [activeImpact, setActiveImpact] = useState(false);
 
   const [activeBodyParts, setActiveBodyParts] = useState({
@@ -45,6 +54,7 @@ const App = () => {
   const [filteredExercises, setFilteredExercises] = useState([]);
 
   const [isSelectionLocked, setIsSelectionLocked] = useState(false);
+  const [isSelectionValidated, setIsSelectionValidated] = useState(false);
 
 
   // Updates countdown when parameters of the workout change
@@ -69,6 +79,7 @@ const App = () => {
 
   const handleValidateSelection = () => {
     setIsSelectionLocked(true);
+    setIsSelectionValidated(true);
     generateExercise();
   };
 
@@ -76,25 +87,41 @@ const App = () => {
   useEffect(() => {
     const updateFilteredExercises = () => {
       const filteredExercises = exerciseList.filter((exercise) => {
-        const isDifficultyActive = activeDifficulty[exercise.difficulty];
         const isImpactActive = !activeImpact || !exercise.dynamic;
         const isBodyPartActive = exercise.bodyPart.some(part => activeBodyParts[part]);
 
-        return isDifficultyActive && isImpactActive && isBodyPartActive;
+        return isImpactActive && isBodyPartActive;
       });
 
       setFilteredExercises(filteredExercises);
     };
 
     updateFilteredExercises();
-  }, [activeDifficulty, activeImpact, activeBodyParts]);
-
+  }, [activeImpact, activeBodyParts]); // removed selectedDifficulty from the dependencies
 
   // generate a random exercise
   const generateExercise = () => {
     if (filteredExercises.length > 0) {
-      const randomIndex = Math.floor(Math.random() * filteredExercises.length);
-      setCurrentExercise(filteredExercises[randomIndex].name);
+      // Filter the exercises by the selected difficulty and then apply the weights
+      const filteredByDifficulty = filteredExercises.filter((exercise) => difficultyWeights[selectedDifficulty][exercise.difficulty] > 0);
+
+      const weights = filteredByDifficulty.map(
+        (exercise) => difficultyWeights[selectedDifficulty][exercise.difficulty]
+      );
+      const totalWeight = weights.reduce((a, b) => a + b, 0);
+      let randomNum = Math.random() * totalWeight;
+      let weightSum = 0;
+      let selectedExercise;
+
+      for (let i = 0; i < filteredByDifficulty.length; i++) {
+        weightSum += weights[i];
+        if (randomNum <= weightSum) {
+          selectedExercise = filteredByDifficulty[i];
+          break;
+        }
+      }
+
+      setCurrentExercise(selectedExercise.name);
     } else {
       console.log("No exercises found with the current filters");
     }
@@ -188,6 +215,7 @@ const App = () => {
     setIsBreakTime(true);
     setTotalCountdown(totalTime);
     setIsSelectionLocked(false);
+    setIsSelectionValidated(false);
 
     if (isBreakTime) {
       setPartCountdown(userBreakTime);
@@ -199,211 +227,23 @@ const App = () => {
   return (
     <div className="container mt-5">
 
-      <audio preload="auto" id="beepSound" ref={beepSoundRef} onPlay={() => console.log("Le son beep est joué !")} >
+      <audio preload="auto" id="beepSound" ref={beepSoundRef} onPlay={() => console.log("Le son beep est joué !")}>
         <source src="./sound/1942.mp3" type="audio/mp3" />
       </audio>
 
-      <audio preload="auto" id="bellSound" ref={bellSoundRef} onPlay={() => console.log("Le son bell est joué !")} >
+      <audio preload="auto" id="bellSound" ref={bellSoundRef} onPlay={() => console.log("Le son bell est joué !")}>
         <source src="./sound/bell.wav" type="audio/wav" />
       </audio>
 
-      <button onClick={() => bellSoundRef.current.play()}>Play bell sound</button>
-
-        <div className="row mb-4">
-          <div className="col text-center bg-dark text-light">
-            <h1 className="display-3">HIIT App</h1>
-          </div>
+      <div className="row mb-4">
+        <div className="col text-center bg-dark text-light">
+          <h1 className="display-3">HIIT App</h1>
         </div>
+      </div>
 
+      {isSelectionValidated ? (
+        // Show workout information
         <div className="row mb-4">
-          <div className="col-md-4">
-            <div className="input-group">
-              <span className="input-group-text" style={{ minWidth: "200px" }}>Number of Rounds</span>
-              <input
-                type="number"
-                value={userRounds}
-                onChange={(e) => setUserRounds(e.target.value)}
-                disabled={isWorkoutStarted}
-                className="form-control"
-              />
-            </div>
-          </div>
-
-          <div className="col-md-4">
-            <div className="input-group">
-              <span className="input-group-text" style={{ minWidth: "200px" }}>Break Time</span>
-              <input
-                type="number"
-                value={userBreakTime}
-                onChange={(e) => setUserBreakTime(e.target.value)}
-                disabled={isWorkoutStarted}
-                className="form-control"
-              />
-            </div>
-          </div>
-
-          <div className="col-md-4">
-            <div className="input-group">
-              <span className="input-group-text" style={{ minWidth: "200px" }}>Exercise Time</span>
-              <input
-                type="number"
-                value={userExerciseTime}
-                onChange={(e) => setUserExerciseTime(e.target.value)}
-                disabled={isWorkoutStarted}
-                className="form-control"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="row mb-4">
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5>Difficulty:</h5>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={activeDifficulty.easy}
-                    onChange={() => setActiveDifficulty({ ...activeDifficulty, easy: !activeDifficulty.easy })}
-                    disabled={isSelectionLocked}
-                  />
-                  <label className="form-check-label">Easy</label>
-                </div>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={activeDifficulty.medium}
-                    onChange={() => setActiveDifficulty({ ...activeDifficulty, medium: !activeDifficulty.medium })}
-                    disabled={isSelectionLocked}
-                  />
-                  <label className="form-check-label">Medium</label>
-                </div>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={activeDifficulty.hard}
-                    onChange={() => setActiveDifficulty({ ...activeDifficulty, hard: !activeDifficulty.hard })}
-                    disabled={isSelectionLocked}
-                  />
-                  <label className="form-check-label">Hard</label>
-                </div>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={activeDifficulty.extreme}
-                    onChange={() => setActiveDifficulty({ ...activeDifficulty, extreme: !activeDifficulty.extreme })}
-                    disabled={isSelectionLocked}
-                  />
-                  <label className="form-check-label">Extreme</label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5>Body Parts:</h5>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={activeBodyParts.legs}
-                    onChange={() => setActiveBodyParts({ ...activeBodyParts, legs: !activeBodyParts.legs })}
-                    disabled={isSelectionLocked}
-                  />
-                  <label className="form-check-label">Legs</label>
-                </div>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={activeBodyParts.upperBody}
-                    onChange={() => setActiveBodyParts({ ...activeBodyParts, "upper body": !activeBodyParts["upper body"] })}
-                    disabled={isSelectionLocked}
-                  />
-                  <label className="form-check-label">Upper Body</label>
-                </div>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={activeBodyParts.fullBody}
-                    onChange={() => setActiveBodyParts({ ...activeBodyParts, "full body": !activeBodyParts["full body"] })}
-                    disabled={isSelectionLocked}
-                  />
-                  <label className="form-check-label">Full Body</label>
-                </div>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={activeBodyParts.abs}
-                    onChange={() => setActiveBodyParts({ ...activeBodyParts, abs: !activeBodyParts.abs })}
-                    disabled={isSelectionLocked}
-                  />
-                  <label className="form-check-label">Abs</label>
-                </div>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={activeBodyParts.arms}
-                    onChange={() => setActiveBodyParts({ ...activeBodyParts, arms: !activeBodyParts.arms })}
-                    disabled={isSelectionLocked}
-                  />
-                  <label className="form-check-label">Arms</label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5>Impact:</h5>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={activeImpact}
-                    onChange={() => setActiveImpact(!activeImpact)}
-                    disabled={isSelectionLocked}
-                  />
-                  <label className="form-check-label">Low Impact</label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5>Number of selected exercises :</h5>
-                <div className="col-md-6 mx-auto">
-                  {filteredExercises.length}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {!isSelectionLocked && (
-            <button
-              onClick={handleValidateSelection}
-              className="btn btn-success btn-lg btn-block mt-3"
-            >
-              Validate Selection
-            </button>
-          )}
-
-        </div>
-        <div className="row mb-4">
-
           <div className="col-md-6 mx-auto">
             <div className="card text-center bg-light">
               <div className="card-body">
@@ -414,7 +254,6 @@ const App = () => {
                 <div className="progress mt-3">
                   <div className="progress-bar" role="progressbar" style={{ width: `${advancement}%` }}></div>
                 </div>
-
 
                 <h3 className={isBreakTime ? "text-center text-success" : "text-center text-danger"}>{isBreakTime ? "Rest" : "Workout"}</h3>
 
@@ -453,6 +292,172 @@ const App = () => {
             </div>
           </div>
         </div>
+      ) : (
+        // Show selection
+        <div>
+          <div className="row mb-4">
+            <div className="col-md-4">
+              <div className="input-group">
+                <span className="input-group-text" style={{ minWidth: "200px" }}>Number of Rounds</span>
+                <input
+                  type="number"
+                  value={userRounds}
+                  onChange={(e) => setUserRounds(e.target.value)}
+                  disabled={isWorkoutStarted}
+                  className="form-control"
+                />
+              </div>
+            </div>
+
+            <div className="col-md-4">
+              <div className="input-group">
+                <span className="input-group-text" style={{ minWidth: "200px" }}>Break Time</span>
+                <input
+                  type="number"
+                  value={userBreakTime}
+                  onChange={(e) => setUserBreakTime(e.target.value)}
+                  disabled={isWorkoutStarted}
+                  className="form-control"
+                />
+              </div>
+            </div>
+
+            <div className="col-md-4">
+              <div className="input-group">
+                <span className="input-group-text" style={{ minWidth: "200px" }}>Exercise Time</span>
+                <input
+                  type="number"
+                  value={userExerciseTime}
+                  onChange={(e) => setUserExerciseTime(e.target.value)}
+                  disabled={isWorkoutStarted}
+                  className="form-control"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="row mb-4">
+            <div className="col-md-4">
+              <div className="card">
+                <div className="card-header">
+                  <h5>Difficulty:</h5>
+                </div>
+                <div className="card-body">
+                  <select
+                    className="form-select"
+                    value={selectedDifficulty}
+                    onChange={e => setSelectedDifficulty(e.target.value)}
+                    disabled={isSelectionLocked}
+                  >
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                    <option value="extreme">Extreme</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-4">
+              <div className="card">
+                <div className="card-body">
+                  <h5>Body Parts:</h5>
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      checked={activeBodyParts.legs}
+                      onChange={() => setActiveBodyParts({ ...activeBodyParts, legs: !activeBodyParts.legs })}
+                      disabled={isSelectionLocked}
+                    />
+                    <label className="form-check-label">Legs</label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      checked={activeBodyParts.upperBody}
+                      onChange={() => setActiveBodyParts({ ...activeBodyParts, "upper body": !activeBodyParts["upper body"] })}
+                      disabled={isSelectionLocked}
+                    />
+                    <label className="form-check-label">Upper Body</label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      checked={activeBodyParts.fullBody}
+                      onChange={() => setActiveBodyParts({ ...activeBodyParts, "full body": !activeBodyParts["full body"] })}
+                      disabled={isSelectionLocked}
+                    />
+                    <label className="form-check-label">Full Body</label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      checked={activeBodyParts.abs}
+                      onChange={() => setActiveBodyParts({ ...activeBodyParts, abs: !activeBodyParts.abs })}
+                      disabled={isSelectionLocked}
+                    />
+                    <label className="form-check-label">Abs</label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      checked={activeBodyParts.arms}
+                      onChange={() => setActiveBodyParts({ ...activeBodyParts, arms: !activeBodyParts.arms })}
+                      disabled={isSelectionLocked}
+                    />
+                    <label className="form-check-label">Arms</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-4">
+              <div className="card">
+                <div className="card-body">
+                  <h5>Impact:</h5>
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      checked={activeImpact}
+                      onChange={() => setActiveImpact(!activeImpact)}
+                      disabled={isSelectionLocked}
+                    />
+                    <label className="form-check-label">Low Impact</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-4">
+              <div className="card">
+                <div className="card-body">
+                  <h5>Number of selected exercises :</h5>
+                  <div className="col-md-6 mx-auto">
+                    {filteredExercises.length}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="row mb-4">
+          <div className="col-md-4">
+            <button
+              onClick={handleValidateSelection}
+              className="btn btn-success btn-lg btn-block mt-3"
+            >
+              Validate Selection
+            </button>
+          </div>
+        </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
