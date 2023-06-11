@@ -23,6 +23,7 @@ const App = () => {
   const [userExerciseTime, setUserExerciseTime] = useState(30);
 
   const beepSoundRef = useRef();
+  const bellSoundRef = useRef();
 
   const [activeDifficulty, setActiveDifficulty] = useState({
     easy: true,
@@ -40,6 +41,8 @@ const App = () => {
     abs: true,
     arms: true
   });
+
+  const [filteredExercises, setFilteredExercises] = useState([]);
 
   const [isSelectionLocked, setIsSelectionLocked] = useState(false);
 
@@ -69,26 +72,34 @@ const App = () => {
     generateExercise();
   };
 
-// generate a random exercise
-const generateExercise = () => {
-  const filteredExercises = exerciseList.filter((exercise) => {
-    const isDifficultyActive = activeDifficulty[exercise.difficulty];
-    const isImpactActive = !activeImpact || !exercise.dynamic;
-    const isBodyPartActive = exercise.bodyPart.some(part => activeBodyParts[part]);
+  // Update filtered exercises whenever the active criteria change
+  useEffect(() => {
+    const updateFilteredExercises = () => {
+      const filteredExercises = exerciseList.filter((exercise) => {
+        const isDifficultyActive = activeDifficulty[exercise.difficulty];
+        const isImpactActive = !activeImpact || !exercise.dynamic;
+        const isBodyPartActive = exercise.bodyPart.some(part => activeBodyParts[part]);
 
-    return isDifficultyActive && isImpactActive && isBodyPartActive;
-  });
+        return isDifficultyActive && isImpactActive && isBodyPartActive;
+      });
 
-  if (filteredExercises.length > 0) {
-    const randomIndex = Math.floor(Math.random() * filteredExercises.length);
-    setCurrentExercise(filteredExercises[randomIndex].name);
-  } else {
-    console.log("No exercises found with the current filters");
-  }
-  console.log("Filtered exercises:", filteredExercises);
-};
+      setFilteredExercises(filteredExercises);
+    };
+
+    updateFilteredExercises();
+  }, [activeDifficulty, activeImpact, activeBodyParts]);
 
 
+  // generate a random exercise
+  const generateExercise = () => {
+    if (filteredExercises.length > 0) {
+      const randomIndex = Math.floor(Math.random() * filteredExercises.length);
+      setCurrentExercise(filteredExercises[randomIndex].name);
+    } else {
+      console.log("No exercises found with the current filters");
+    }
+    console.log("Filtered exercises:", filteredExercises);
+  };
 
 
   useEffect(() => {
@@ -129,9 +140,6 @@ const generateExercise = () => {
     }
   }, [isRunning, totalCountdown, totalTime]);
 
-
-
-
   // Updates when partCountdown reaches 0
   useEffect(() => {
 
@@ -148,7 +156,10 @@ const generateExercise = () => {
         }
       }
     }
-  }, [partCountdown, isBreakTime, userBreakTime, userRounds, currentRound, userExerciseTime]);
+    if (partCountdown === userExerciseTime && !isBreakTime) {
+      bellSoundRef.current.play();
+    }
+  }, [partCountdown, isBreakTime, userBreakTime, userRounds, currentRound, userExerciseTime, bellSoundRef]);
 
   useEffect(() => {
     if (!isWorkoutStarted) {
@@ -188,243 +199,260 @@ const generateExercise = () => {
   return (
     <div className="container mt-5">
 
-      <audio preload="auto" id="beepSound" ref={beepSoundRef} onPlay={() => console.log("Le son est joué !")} >
+      <audio preload="auto" id="beepSound" ref={beepSoundRef} onPlay={() => console.log("Le son beep est joué !")} >
         <source src="./sound/1942.mp3" type="audio/mp3" />
       </audio>
 
-      <div className="row mb-4">
-        <div className="col text-center bg-dark text-light">
-          <h1 className="display-3">HIIT App</h1>
-        </div>
-      </div>
+      <audio preload="auto" id="bellSound" ref={bellSoundRef} onPlay={() => console.log("Le son bell est joué !")} >
+        <source src="./sound/bell.wav" type="audio/wav" />
+      </audio>
 
-      <div className="row mb-4">
-        <div className="col-md-4">
-          <div className="input-group">
-            <span className="input-group-text" style={{ minWidth: "200px" }}>Number of Rounds</span>
-            <input
-              type="number"
-              value={userRounds}
-              onChange={(e) => setUserRounds(e.target.value)}
-              disabled={isWorkoutStarted}
-              className="form-control"
-            />
+      <button onClick={() => bellSoundRef.current.play()}>Play bell sound</button>
+
+        <div className="row mb-4">
+          <div className="col text-center bg-dark text-light">
+            <h1 className="display-3">HIIT App</h1>
           </div>
         </div>
 
-        <div className="col-md-4">
-          <div className="input-group">
-            <span className="input-group-text" style={{ minWidth: "200px" }}>Break Time</span>
-            <input
-              type="number"
-              value={userBreakTime}
-              onChange={(e) => setUserBreakTime(e.target.value)}
-              disabled={isWorkoutStarted}
-              className="form-control"
-            />
+        <div className="row mb-4">
+          <div className="col-md-4">
+            <div className="input-group">
+              <span className="input-group-text" style={{ minWidth: "200px" }}>Number of Rounds</span>
+              <input
+                type="number"
+                value={userRounds}
+                onChange={(e) => setUserRounds(e.target.value)}
+                disabled={isWorkoutStarted}
+                className="form-control"
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="col-md-4">
-          <div className="input-group">
-            <span className="input-group-text" style={{ minWidth: "200px" }}>Exercise Time</span>
-            <input
-              type="number"
-              value={userExerciseTime}
-              onChange={(e) => setUserExerciseTime(e.target.value)}
-              disabled={isWorkoutStarted}
-              className="form-control"
-            />
+          <div className="col-md-4">
+            <div className="input-group">
+              <span className="input-group-text" style={{ minWidth: "200px" }}>Break Time</span>
+              <input
+                type="number"
+                value={userBreakTime}
+                onChange={(e) => setUserBreakTime(e.target.value)}
+                disabled={isWorkoutStarted}
+                className="form-control"
+              />
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div className="row mb-4">
-        <div className="col-md-4">
-          <div className="card">
-            <div className="card-body">
-              <h5>Difficulty:</h5>
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={activeDifficulty.easy}
-                  onChange={() => setActiveDifficulty({ ...activeDifficulty, easy: !activeDifficulty.easy })}
-                disabled={isSelectionLocked}
-                />
-                <label className="form-check-label">Easy</label>
-              </div>
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={activeDifficulty.medium}
-                  onChange={() => setActiveDifficulty({ ...activeDifficulty, medium: !activeDifficulty.medium })}
-                  disabled={isSelectionLocked}
-                />
-                <label className="form-check-label">Medium</label>
-              </div>
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={activeDifficulty.hard}
-                  onChange={() => setActiveDifficulty({ ...activeDifficulty, hard: !activeDifficulty.hard })}
-                  disabled={isSelectionLocked}
-                />
-                <label className="form-check-label">Hard</label>
-              </div>
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={activeDifficulty.extreme}
-                  onChange={() => setActiveDifficulty({ ...activeDifficulty, extreme: !activeDifficulty.extreme })}
-                  disabled={isSelectionLocked}
-                />
-                <label className="form-check-label">Extreme</label>
-              </div>
+          <div className="col-md-4">
+            <div className="input-group">
+              <span className="input-group-text" style={{ minWidth: "200px" }}>Exercise Time</span>
+              <input
+                type="number"
+                value={userExerciseTime}
+                onChange={(e) => setUserExerciseTime(e.target.value)}
+                disabled={isWorkoutStarted}
+                className="form-control"
+              />
             </div>
           </div>
         </div>
 
-        <div className="col-md-4">
-          <div className="card">
-            <div className="card-body">
-              <h5>Body Parts:</h5>
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={activeBodyParts.legs}
-                  onChange={() => setActiveBodyParts({ ...activeBodyParts, legs: !activeBodyParts.legs })}
-                  disabled={isSelectionLocked}
-                />
-                <label className="form-check-label">Legs</label>
-              </div>
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={activeBodyParts.upperBody}
-                  onChange={() => setActiveBodyParts({ ...activeBodyParts, "upper body": !activeBodyParts["upper body"] })}
-                  disabled={isSelectionLocked}
-                />
-                <label className="form-check-label">Upper Body</label>
-              </div>
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={activeBodyParts.fullBody}
-                  onChange={() => setActiveBodyParts({ ...activeBodyParts, "full body": !activeBodyParts["full body"] })}
-                  disabled={isSelectionLocked}
-                />
-                <label className="form-check-label">Full Body</label>
-              </div>
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={activeBodyParts.abs}
-                  onChange={() => setActiveBodyParts({ ...activeBodyParts, abs: !activeBodyParts.abs })}
-                  disabled={isSelectionLocked}
-                />
-                <label className="form-check-label">Abs</label>
-              </div>
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={activeBodyParts.arms}
-                  onChange={() => setActiveBodyParts({ ...activeBodyParts, arms: !activeBodyParts.arms })}
-                  disabled={isSelectionLocked}
-                />
-                <label className="form-check-label">Arms</label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-4">
-          <div className="card">
-            <div className="card-body">
-              <h5>Impact:</h5>
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  checked={activeImpact}
-                  onChange={() => setActiveImpact(!activeImpact)}
-                  disabled={isSelectionLocked}
-                />
-                <label className="form-check-label">Low Impact</label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {!isSelectionLocked && (
-          <button
-            onClick={handleValidateSelection}
-            className="btn btn-success btn-lg btn-block mt-3"
-          >
-            Validate Selection
-          </button>
-        )}
-
-      </div>
-      <div className="row mb-4">
-
-        <div className="col-md-6 mx-auto">
-          <div className="card text-center bg-light">
-            <div className="card-body">
-              <h2 className="card-title">{partCountdown}</h2>
-              <p>
-              Remaining time : {Math.floor(totalCountdown / 60)}:{totalCountdown % 60} ({advancement}%)
-              </p>
-              <div className="progress mt-3">
-                <div className="progress-bar" role="progressbar" style={{ width: `${advancement}%` }}></div>
-              </div>
-
-
-              <h3 className={isBreakTime ? "text-center text-success" : "text-center text-danger"}>{isBreakTime ? "Rest" : "Workout"}</h3>
-
-              <h4>Round {currentRound} out of {userRounds}</h4>
-              {isBreakTime && <h5 className="card-subtitle mb-2 text-muted">Next exercise: {currentExercise}</h5>}
-              {!isBreakTime && (
-                <h5 className="card-subtitle mb-2 text-warning">
-                  {currentExercise.toUpperCase()}
-                </h5>
-              )}
-
-              {!isWorkoutFinished && !isWorkoutStarted && (
-                <button
-                  onClick={handleStart}
-                  disabled={isWorkoutFinished}
-                  className="btn btn-primary btn-lg btn-block mt-3"
-                >
-                  Start
-                </button>
-              )}
-              {!isWorkoutFinished && isWorkoutStarted && (
-                <button onClick={pauseTimer} className="btn btn-warning btn-lg btn-block mt-3">
-                  {isRunning ? "Pause" : "Resume"}
-                </button>
-              )}
-              <button onClick={handleReset} className="btn btn-danger btn-lg btn-block mt-3">
-                Reset
-              </button>
-
-              {isWorkoutFinished && (
-                <div className="alert alert-success mt-3">
-                  Well done, the workout is finished!
+        <div className="row mb-4">
+          <div className="col-md-4">
+            <div className="card">
+              <div className="card-body">
+                <h5>Difficulty:</h5>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={activeDifficulty.easy}
+                    onChange={() => setActiveDifficulty({ ...activeDifficulty, easy: !activeDifficulty.easy })}
+                    disabled={isSelectionLocked}
+                  />
+                  <label className="form-check-label">Easy</label>
                 </div>
-              )}
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={activeDifficulty.medium}
+                    onChange={() => setActiveDifficulty({ ...activeDifficulty, medium: !activeDifficulty.medium })}
+                    disabled={isSelectionLocked}
+                  />
+                  <label className="form-check-label">Medium</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={activeDifficulty.hard}
+                    onChange={() => setActiveDifficulty({ ...activeDifficulty, hard: !activeDifficulty.hard })}
+                    disabled={isSelectionLocked}
+                  />
+                  <label className="form-check-label">Hard</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={activeDifficulty.extreme}
+                    onChange={() => setActiveDifficulty({ ...activeDifficulty, extreme: !activeDifficulty.extreme })}
+                    disabled={isSelectionLocked}
+                  />
+                  <label className="form-check-label">Extreme</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-md-4">
+            <div className="card">
+              <div className="card-body">
+                <h5>Body Parts:</h5>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={activeBodyParts.legs}
+                    onChange={() => setActiveBodyParts({ ...activeBodyParts, legs: !activeBodyParts.legs })}
+                    disabled={isSelectionLocked}
+                  />
+                  <label className="form-check-label">Legs</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={activeBodyParts.upperBody}
+                    onChange={() => setActiveBodyParts({ ...activeBodyParts, "upper body": !activeBodyParts["upper body"] })}
+                    disabled={isSelectionLocked}
+                  />
+                  <label className="form-check-label">Upper Body</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={activeBodyParts.fullBody}
+                    onChange={() => setActiveBodyParts({ ...activeBodyParts, "full body": !activeBodyParts["full body"] })}
+                    disabled={isSelectionLocked}
+                  />
+                  <label className="form-check-label">Full Body</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={activeBodyParts.abs}
+                    onChange={() => setActiveBodyParts({ ...activeBodyParts, abs: !activeBodyParts.abs })}
+                    disabled={isSelectionLocked}
+                  />
+                  <label className="form-check-label">Abs</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={activeBodyParts.arms}
+                    onChange={() => setActiveBodyParts({ ...activeBodyParts, arms: !activeBodyParts.arms })}
+                    disabled={isSelectionLocked}
+                  />
+                  <label className="form-check-label">Arms</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-md-4">
+            <div className="card">
+              <div className="card-body">
+                <h5>Impact:</h5>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={activeImpact}
+                    onChange={() => setActiveImpact(!activeImpact)}
+                    disabled={isSelectionLocked}
+                  />
+                  <label className="form-check-label">Low Impact</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-md-4">
+            <div className="card">
+              <div className="card-body">
+                <h5>Number of selected exercises :</h5>
+                <div className="col-md-6 mx-auto">
+                  {filteredExercises.length}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {!isSelectionLocked && (
+            <button
+              onClick={handleValidateSelection}
+              className="btn btn-success btn-lg btn-block mt-3"
+            >
+              Validate Selection
+            </button>
+          )}
+
+        </div>
+        <div className="row mb-4">
+
+          <div className="col-md-6 mx-auto">
+            <div className="card text-center bg-light">
+              <div className="card-body">
+                <h2 className="card-title">{partCountdown}</h2>
+                <p>
+                  Remaining time : {Math.floor(totalCountdown / 60)}:{totalCountdown % 60} ({advancement}%)
+                </p>
+                <div className="progress mt-3">
+                  <div className="progress-bar" role="progressbar" style={{ width: `${advancement}%` }}></div>
+                </div>
+
+
+                <h3 className={isBreakTime ? "text-center text-success" : "text-center text-danger"}>{isBreakTime ? "Rest" : "Workout"}</h3>
+
+                <h4>Round {currentRound} out of {userRounds}</h4>
+                {isBreakTime && <h5 className="card-subtitle mb-2 text-muted">Next exercise: {currentExercise}</h5>}
+                {!isBreakTime && (
+                  <h5 className="card-subtitle mb-2 text-warning">
+                    {currentExercise.toUpperCase()}
+                  </h5>
+                )}
+
+                {!isWorkoutFinished && !isWorkoutStarted && (
+                  <button
+                    onClick={handleStart}
+                    disabled={isWorkoutFinished}
+                    className="btn btn-primary btn-lg btn-block mt-3"
+                  >
+                    Start
+                  </button>
+                )}
+                {!isWorkoutFinished && isWorkoutStarted && (
+                  <button onClick={pauseTimer} className="btn btn-warning btn-lg btn-block mt-3">
+                    {isRunning ? "Pause" : "Resume"}
+                  </button>
+                )}
+                <button onClick={handleReset} className="btn btn-danger btn-lg btn-block mt-3">
+                  Reset
+                </button>
+
+                {isWorkoutFinished && (
+                  <div className="alert alert-success mt-3">
+                    Well done, the workout is finished!
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }
