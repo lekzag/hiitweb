@@ -377,7 +377,7 @@ const App = () => {
                       className="form-check-input"
                       type="checkbox"
                       checked={activeBodyParts.upperBody}
-                      onChange={() => setActiveBodyParts({ ...activeBodyParts, upperBody: !activeBodyParts["upper body"] })}
+                      onChange={() => setActiveBodyParts({ ...activeBodyParts, upperBody: !activeBodyParts.upperBody })}
                       disabled={isSelectionLocked}
                     />
                     <label className="form-check-label">Upper Body</label>
@@ -387,7 +387,7 @@ const App = () => {
                       className="form-check-input"
                       type="checkbox"
                       checked={activeBodyParts.fullBody}
-                      onChange={() => setActiveBodyParts({ ...activeBodyParts, fullBody: !activeBodyParts["full body"] })}
+                      onChange={() => setActiveBodyParts({ ...activeBodyParts, fullBody: !activeBodyParts.fullBody })}
                       disabled={isSelectionLocked}
                     />
                     <label className="form-check-label">Full Body</label>
