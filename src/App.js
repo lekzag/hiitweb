@@ -89,15 +89,18 @@ const App = () => {
       const filteredExercises = exerciseList.filter((exercise) => {
         const isImpactActive = !activeImpact || !exercise.dynamic;
         const isBodyPartActive = exercise.bodyPart.some(part => activeBodyParts[part]);
-
-        return isImpactActive && isBodyPartActive;
+        const hasNonZeroWeight = Object.keys(difficultyWeights[selectedDifficulty]).some(
+          (difficulty) => difficultyWeights[selectedDifficulty][difficulty] > 0 && exercise.difficulty === difficulty
+        );
+        
+        return isImpactActive && isBodyPartActive && hasNonZeroWeight;
       });
-
+    
       setFilteredExercises(filteredExercises);
-    };
-
+    };    
+  
     updateFilteredExercises();
-  }, [activeImpact, activeBodyParts]); // removed selectedDifficulty from the dependencies
+  }, [activeImpact, activeBodyParts, selectedDifficulty]);// removed selectedDifficulty from the dependencies
 
   // generate a random exercise
   const generateExercise = () => {
