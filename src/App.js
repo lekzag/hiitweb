@@ -37,7 +37,7 @@ const App = () => {
   const difficultyWeights = {
     easy: { easy: 0.8, medium: 0.2, hard: 0.0, extreme: 0.0 },
     medium: { easy: 0.2, medium: 0.7, hard: 0.1, extreme: 0.0 },
-    hard: { easy: 0.1, medium: 0.2, hard: 0.3, extreme: 0.0 },
+    hard: { easy: 0.1, medium: 0.2, hard: 0.7, extreme: 0.0 },
     extreme: { easy: 0.0, medium: 0.2, hard: 0.3, extreme: 0.5 },
   };
 
@@ -45,8 +45,8 @@ const App = () => {
 
   const [activeBodyParts, setActiveBodyParts] = useState({
     legs: true,
-    "upper body": true,
-    "full body": true,
+    upperBody: true,
+    fullBody: true,
     abs: true,
     arms: true
   });
@@ -377,7 +377,7 @@ const App = () => {
                       className="form-check-input"
                       type="checkbox"
                       checked={activeBodyParts.upperBody}
-                      onChange={() => setActiveBodyParts({ ...activeBodyParts, "upper body": !activeBodyParts["upper body"] })}
+                      onChange={() => setActiveBodyParts({ ...activeBodyParts, upperBody: !activeBodyParts["upper body"] })}
                       disabled={isSelectionLocked}
                     />
                     <label className="form-check-label">Upper Body</label>
@@ -387,7 +387,7 @@ const App = () => {
                       className="form-check-input"
                       type="checkbox"
                       checked={activeBodyParts.fullBody}
-                      onChange={() => setActiveBodyParts({ ...activeBodyParts, "full body": !activeBodyParts["full body"] })}
+                      onChange={() => setActiveBodyParts({ ...activeBodyParts, fullBody: !activeBodyParts["full body"] })}
                       disabled={isSelectionLocked}
                     />
                     <label className="form-check-label">Full Body</label>
