@@ -89,9 +89,7 @@ const App = () => {
       const filteredExercises = exerciseList.filter((exercise) => {
         const isImpactActive = !activeImpact || !exercise.dynamic;
         const isBodyPartActive = exercise.bodyPart.some(part => activeBodyParts[part]);
-        const hasNonZeroWeight = Object.keys(difficultyWeights[selectedDifficulty]).some(
-          (difficulty) => difficultyWeights[selectedDifficulty][difficulty] > 0 && exercise.difficulty === difficulty
-        );
+        const hasNonZeroWeight = difficultyWeights[selectedDifficulty][exercise.difficulty] > 0;
         
         return isImpactActive && isBodyPartActive && hasNonZeroWeight;
       });
